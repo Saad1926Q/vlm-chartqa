@@ -1,6 +1,11 @@
 import re
 
-from config import REASONING_END, REASONING_START, SOLUTION_END, SOLUTION_START
+from vlm_chartqa.config import (
+    REASONING_END,
+    REASONING_START,
+    SOLUTION_END,
+    SOLUTION_START,
+)
 
 
 def formatting_reward_func(completions, **kwargs) -> list[float]:

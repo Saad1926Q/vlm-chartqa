@@ -1,5 +1,6 @@
-from config import LORA_RANK, MAX_SEQ_LEN, MODEL_NAME
 from unsloth import FastVisionModel
+
+from vlm_chartqa.config import LORA_RANK, MAX_SEQ_LEN, MODEL_NAME
 
 
 def load_model():

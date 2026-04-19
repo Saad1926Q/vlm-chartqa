@@ -1,11 +1,12 @@
 import argparse
 import os
 
-from dataset import prepare_dataset
-from model import load_model
-from rewards import correctness_reward_func, formatting_reward_func
 from trl.trainer.grpo_config import GRPOConfig
 from trl.trainer.grpo_trainer import GRPOTrainer
+
+from vlm_chartqa.dataset import prepare_dataset
+from vlm_chartqa.model import load_model
+from vlm_chartqa.train.rewards import correctness_reward_func, formatting_reward_func
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--output_dir", type=str, default="grpo_lora")
