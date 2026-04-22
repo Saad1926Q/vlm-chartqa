@@ -6,6 +6,15 @@ The rough idea is to compare three settings - baseline, SFT, and RL - and see ho
 
 Along the way, hoping to get a better feel for reward function design and the various knobs in GRPO.
 
+Using Qwen3-VL-8B-Instruct (via Unsloth 4-bit quant) fine-tuned with LoRA.
+
+## Plan
+
+1. Eval baseline model to get a reference score
+2. Train with SFT, eval again - see how much it improves
+3. Take the SFT checkpoint, train with GRPO, eval again 
+4. If compute allows, try CoT SFT + GRPO - generate reasoning traces with a stronger model, SFT on those, then GRPO on top
+
 ## Learnings
 
 So initially I went with exact match as the eval metric and then realized it's actually not a great way to evaluate the model. Like a model answering "12.5%" vs "0.125" shouldn't really be penalized. After looking up how ChartQA is evaluated everywhere, I came across the relaxed correctness metric. The idea is that for numeric answers you allow up to 5% relative error, and for non-numeric you just fall back to exact match (case-insensitive). Btw one problem I noticed with the implementation is that it should have been `prediction_float is not None and target_float is not None` but instead it's just `and target_float`. But since this is the implementation used everywhere, I kept it for uniformity.

@@ -4,6 +4,13 @@ import os
 from trl.trainer.grpo_config import GRPOConfig
 from trl.trainer.grpo_trainer import GRPOTrainer
 
+from vlm_chartqa.config import (
+    GRPO_BATCH_SIZE,
+    GRPO_EPOCHS,
+    GRPO_GRAD_ACCUM_STEPS,
+    GRPO_LEARNING_RATE,
+    GRPO_NUM_GENERATIONS,
+)
 from vlm_chartqa.dataset import prepare_dataset
 from vlm_chartqa.model import load_model
 from vlm_chartqa.train.rewards import correctness_reward_func, formatting_reward_func
@@ -28,7 +35,7 @@ if args.use_wandb:
         os.environ["WANDB_RUN_NAME"] = args.wandb_run_name
 
 training_args = GRPOConfig(
-    learning_rate=5e-6,
+    learning_rate=GRPO_LEARNING_RATE,
     adam_beta1=0.9,
     adam_beta2=0.99,
     weight_decay=0.1,
@@ -37,13 +44,12 @@ training_args = GRPOConfig(
     optim="adamw_8bit",
     logging_steps=1,
     log_completions=False,
-    per_device_train_batch_size=4,
-    gradient_accumulation_steps=1,  # Increase to 4 for smoother training
-    num_generations=4,  # Decrease if out of memory
+    per_device_train_batch_size=GRPO_BATCH_SIZE,
+    gradient_accumulation_steps=GRPO_GRAD_ACCUM_STEPS,
+    num_generations=GRPO_NUM_GENERATIONS,
     max_prompt_length=1024,
     max_completion_length=1024,
-    num_train_epochs=1,
-    # max_steps = 60,
+    num_train_epochs=GRPO_EPOCHS,
     save_steps=60,
     max_grad_norm=0.1,
     report_to="wandb" if args.use_wandb else "none",
