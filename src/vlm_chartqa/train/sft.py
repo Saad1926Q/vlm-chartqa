@@ -22,6 +22,10 @@ parser.add_argument("--hub_model_id", type=str, default=None)
 parser.add_argument("--use_wandb", action="store_true")
 parser.add_argument("--wandb_project", type=str, default="vlm-sft")
 parser.add_argument("--wandb_run_name", type=str, default=None)
+
+training_args = parser.add_argument_group("training")
+training_args.add_argument("--batch_size", type=int, default=SFT_BATCH_SIZE)
+training_args.add_argument("--grad_accum_steps", type=int, default=SFT_GRAD_ACCUM_STEPS)
 args = parser.parse_args()
 
 if args.push_to_hub:
@@ -45,8 +49,8 @@ trainer = SFTTrainer(
     data_collator=UnslothVisionDataCollator(model, tokenizer),
     train_dataset=train_dataset,
     args=SFTConfig(
-        per_device_train_batch_size=SFT_BATCH_SIZE,
-        gradient_accumulation_steps=SFT_GRAD_ACCUM_STEPS,
+        per_device_train_batch_size=args.batch_size,
+        gradient_accumulation_steps=args.grad_accum_steps,
         num_train_epochs=SFT_EPOCHS,
         learning_rate=SFT_LEARNING_RATE,
         warmup_steps=5,
