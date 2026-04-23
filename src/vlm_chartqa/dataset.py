@@ -80,7 +80,10 @@ def _process_grpo(example):
 
 def prepare_dataset(mode="grpo", split=None):
     if split is None:
-        split = f"train[:{DATASET_SIZE}]" if DATASET_SIZE else "train"
+        if mode == "sft":
+            split = "train"
+        else:
+            split = f"train[:{DATASET_SIZE}]" if DATASET_SIZE else "train"
     dataset = load_dataset(DATASET, split=split)
     dataset = (
         dataset.map(_process_grpo) if mode == "grpo" else dataset.map(_process_sft)

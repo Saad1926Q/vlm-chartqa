@@ -8,9 +8,10 @@ from vlm_chartqa.config import MAX_SEQ_LEN, MODEL_NAME
 from vlm_chartqa.eval.utils import relaxed_correctness
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--num_samples", type=int, default=500)
+parser.add_argument("--num_samples", type=int, default=None)
 parser.add_argument("--batch_size", type=int, default=8)
 parser.add_argument("--lora_path", type=str, default=None)
+parser.add_argument("--mode", type=str, default="sft", choices=["sft", "grpo"])
 args = parser.parse_args()
 
 model, tokenizer = FastVisionModel.from_pretrained(
@@ -20,7 +21,8 @@ model, tokenizer = FastVisionModel.from_pretrained(
 )
 FastVisionModel.for_inference(model)
 
-dataset = prepare_dataset(split=f"test[:{args.num_samples}]")
+split = f"test[:{args.num_samples}]" if args.num_samples else "test"
+dataset = prepare_dataset(mode=args.mode, split=split)
 
 correct = 0
 total = 0
