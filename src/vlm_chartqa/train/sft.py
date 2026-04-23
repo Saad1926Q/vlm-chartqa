@@ -26,6 +26,7 @@ parser.add_argument("--wandb_run_name", type=str, default=None)
 training_args = parser.add_argument_group("training")
 training_args.add_argument("--batch_size", type=int, default=SFT_BATCH_SIZE)
 training_args.add_argument("--grad_accum_steps", type=int, default=SFT_GRAD_ACCUM_STEPS)
+training_args.add_argument("--dataset_size", type=int, default=None)
 args = parser.parse_args()
 
 if args.push_to_hub:
@@ -41,7 +42,8 @@ model, tokenizer = load_model()
 
 FastVisionModel.for_training(model)
 
-train_dataset = prepare_dataset(mode="sft")
+split = f"train[:{args.dataset_size}]" if args.dataset_size else None
+train_dataset = prepare_dataset(mode="sft", split=split)
 
 trainer = SFTTrainer(
     model=model,
