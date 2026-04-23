@@ -52,6 +52,35 @@ def _process_sft(example):
     }
 
 
+def _process_eval(example):
+    image = _prepare_image(example)
+
+    system_prompt = """You are a Vision Language Model specialized in interpreting visual data from chart images.
+    Your task is to analyze the provided chart image and respond to queries with concise answers, usually a single word, number, or short phrase.
+    The charts include a variety of types (e.g., line charts, bar charts) and contain colors, labels, and text.
+    Focus on delivering accurate, succinct answers based on the visual information. Avoid additional explanation unless absolutely necessary."""
+
+    prompt = [
+        {
+            "role": "system",
+            "content": [{"type": "text", "text": system_prompt}],
+        },
+        {
+            "role": "user",
+            "content": [
+                {"type": "image"},
+                {"type": "text", "text": example["query"].strip()},
+            ],
+        },
+    ]
+
+    return {
+        "prompt": prompt,
+        "image": image,
+        "answer": example["label"][0],
+    }
+
+
 def _process_grpo(example):
     image = _prepare_image(example)
 
@@ -85,8 +114,13 @@ def prepare_dataset(mode="grpo", split=None):
         else:
             split = f"train[:{DATASET_SIZE}]" if DATASET_SIZE else "train"
     dataset = load_dataset(DATASET, split=split)
-    dataset = (
-        dataset.map(_process_grpo) if mode == "grpo" else dataset.map(_process_sft)
-    )
-    cols = ["messages", "image", "answer"] if mode == "sft" else ["prompt", "image", "answer"]
+    if mode == "grpo":
+        dataset = dataset.map(_process_grpo)
+        cols = ["prompt", "image", "answer"]
+    elif mode == "sft":
+        dataset = dataset.map(_process_sft)
+        cols = ["messages", "image", "answer"]
+    else:  # eval
+        dataset = dataset.map(_process_eval)
+        cols = ["prompt", "image", "answer"]
     return dataset.select_columns(cols)

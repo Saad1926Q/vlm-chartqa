@@ -11,7 +11,6 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--num_samples", type=int, default=None)
 parser.add_argument("--batch_size", type=int, default=8)
 parser.add_argument("--lora_path", type=str, default=None)
-parser.add_argument("--mode", type=str, default="sft", choices=["sft", "grpo"])
 args = parser.parse_args()
 
 model, tokenizer = FastVisionModel.from_pretrained(
@@ -22,7 +21,7 @@ model, tokenizer = FastVisionModel.from_pretrained(
 FastVisionModel.for_inference(model)
 
 split = f"test[:{args.num_samples}]" if args.num_samples else "test"
-dataset = prepare_dataset(mode=args.mode, split=split)
+dataset = prepare_dataset(mode="eval", split=split)
 
 correct = 0
 total = 0
