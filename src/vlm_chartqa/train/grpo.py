@@ -19,6 +19,10 @@ from vlm_chartqa.train.rewards import correctness_reward_func, formatting_reward
 parser = argparse.ArgumentParser()
 parser.add_argument("--output_dir", type=str, default="grpo_lora")
 parser.add_argument("--lora_path", type=str, default=None)
+parser.add_argument("--batch_size", type=int, default=GRPO_BATCH_SIZE)
+parser.add_argument("--grad_accum_steps", type=int, default=GRPO_GRAD_ACCUM_STEPS)
+parser.add_argument("--num_generations", type=int, default=GRPO_NUM_GENERATIONS)
+parser.add_argument("--epochs", type=int, default=GRPO_EPOCHS)
 parser.add_argument("--push_to_hub", action="store_true")
 parser.add_argument("--hub_model_id", type=str, default=None)
 parser.add_argument("--use_wandb", action="store_true")
@@ -46,12 +50,12 @@ training_args = GRPOConfig(
     optim="adamw_8bit",
     logging_steps=1,
     log_completions=False,
-    per_device_train_batch_size=GRPO_BATCH_SIZE,
-    gradient_accumulation_steps=GRPO_GRAD_ACCUM_STEPS,
-    num_generations=GRPO_NUM_GENERATIONS,
+    per_device_train_batch_size=args.batch_size,
+    gradient_accumulation_steps=args.grad_accum_steps,
+    num_generations=args.num_generations,
     max_prompt_length=1024,
     max_completion_length=1024,
-    num_train_epochs=GRPO_EPOCHS,
+    num_train_epochs=args.epochs,
     save_steps=60,
     max_grad_norm=0.1,
     report_to="wandb" if args.use_wandb else "none",
