@@ -35,7 +35,7 @@ def _process_sft(example):
         {
             "role": "user",
             "content": [
-                {"type": "image"},
+                {"type": "image", "image": image},
                 {"type": "text", "text": text},
             ],
         },
@@ -117,10 +117,12 @@ def prepare_dataset(mode="grpo", split=None):
     if mode == "grpo":
         dataset = dataset.map(_process_grpo)
         cols = ["prompt", "image", "answer"]
+        return dataset.select_columns(cols)
     elif mode == "sft":
         dataset = dataset.map(_process_sft)
         cols = ["messages", "image", "answer"]
+        return dataset.select_columns(cols)
     else:  # eval
         dataset = dataset.map(_process_eval)
         cols = ["prompt", "image", "answer"]
-    return dataset.select_columns(cols)
+        return dataset.select_columns(cols)

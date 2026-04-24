@@ -36,7 +36,7 @@ if args.push_to_hub:
 if args.use_wandb:
     os.environ["WANDB_PROJECT"] = args.wandb_project
     if args.wandb_run_name:
-        os.environ["WANDB_RUN_NAME"] = args.wandb_run_name
+        os.environ["WANDB_NAME"] = args.wandb_run_name
 
 model, tokenizer = load_model()
 
@@ -47,7 +47,7 @@ train_dataset = prepare_dataset(mode="sft", split=split)
 
 trainer = SFTTrainer(
     model=model,
-    tokenizer=tokenizer,
+    processing_class=tokenizer,
     data_collator=UnslothVisionDataCollator(model, tokenizer),
     train_dataset=train_dataset,
     args=SFTConfig(
@@ -57,6 +57,7 @@ trainer = SFTTrainer(
         learning_rate=SFT_LEARNING_RATE,
         warmup_steps=5,
         logging_steps=1,
+        eos_token=tokenizer.tokenizer.eos_token,
         optim="adamw_8bit",
         weight_decay=0.001,
         lr_scheduler_type="linear",
