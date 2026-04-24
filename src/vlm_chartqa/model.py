@@ -3,12 +3,9 @@ from unsloth import FastVisionModel
 from vlm_chartqa.config import LORA_RANK, MAX_SEQ_LEN, MODEL_NAME
 
 
-def load_model():
-    """
-    Load model and tokenizer from unsloth.
-    """
+def load_model(lora_path=None):
     model, tokenizer = FastVisionModel.from_pretrained(
-        model_name=MODEL_NAME,
+        model_name=lora_path if lora_path else MODEL_NAME,
         max_seq_length=MAX_SEQ_LEN,
         load_in_4bit=True,  # False for LoRA 16bit
         fast_inference=False,  # Enable vLLM fast inference

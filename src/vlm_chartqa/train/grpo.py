@@ -18,6 +18,7 @@ from vlm_chartqa.train.rewards import correctness_reward_func, formatting_reward
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--output_dir", type=str, default="grpo_lora")
+parser.add_argument("--lora_path", type=str, default=None)
 parser.add_argument("--push_to_hub", action="store_true")
 parser.add_argument("--hub_model_id", type=str, default=None)
 parser.add_argument("--use_wandb", action="store_true")
@@ -69,7 +70,7 @@ training_args.unsloth_grpo_mini_batch = None
 training_args.unsloth_logit_chunk_multiplier = None
 training_args.vllm_sampling_params = None
 
-model, tokenizer = load_model()
+model, tokenizer = load_model(lora_path=args.lora_path)
 
 train_dataset = prepare_dataset()
 

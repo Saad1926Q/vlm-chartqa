@@ -20,7 +20,7 @@ Using Qwen3-VL-8B-Instruct (via Unsloth 4-bit quant) fine-tuned with LoRA.
 | Stage | Accuracy |
 |-------|----------|
 | Baseline (Qwen3-VL-8B-Instruct, 4-bit) | 80.1% (2002/2500) |
-| Post-SFT | TBD |
+| Post-SFT | 82.6% (2065/2500) |
 | Post-GRPO | TBD |
 
 ## Learnings
