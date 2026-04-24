@@ -1,8 +1,8 @@
+from unsloth import FastVisionModel
 import argparse
 
-from vlm_chartqa.dataset import prepare_dataset
 from tqdm import tqdm
-from unsloth import FastVisionModel
+from vlm_chartqa.dataset import prepare_dataset
 
 from vlm_chartqa.config import MAX_SEQ_LEN, MODEL_NAME
 from vlm_chartqa.eval.utils import relaxed_correctness

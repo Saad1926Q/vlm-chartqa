@@ -1,3 +1,4 @@
+from unsloth import FastVisionModel
 import argparse
 import os
 
@@ -32,7 +33,7 @@ if args.push_to_hub:
 if args.use_wandb:
     os.environ["WANDB_PROJECT"] = args.wandb_project
     if args.wandb_run_name:
-        os.environ["WANDB_RUN_NAME"] = args.wandb_run_name
+        os.environ["WANDB_NAME"] = args.wandb_run_name
 
 training_args = GRPOConfig(
     learning_rate=GRPO_LEARNING_RATE,

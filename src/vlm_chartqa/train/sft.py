@@ -1,9 +1,9 @@
+from unsloth import FastVisionModel
+from unsloth.trainer import UnslothVisionDataCollator
 import argparse
 import os
 
 from trl import SFTConfig, SFTTrainer
-from unsloth import FastVisionModel
-from unsloth.trainer import UnslothVisionDataCollator
 
 from vlm_chartqa.config import (
     SFT_BATCH_SIZE,
