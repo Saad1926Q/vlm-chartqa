@@ -1,4 +1,5 @@
 from datasets import load_dataset
+from tqdm import tqdm
 
 from vlm_chartqa.config import (
     DATASET,
@@ -35,7 +36,7 @@ def _process_sft(example):
         {
             "role": "user",
             "content": [
-                {"type": "image", "image": image},
+                {"type": "image"},
                 {"type": "text", "text": text},
             ],
         },
@@ -119,9 +120,7 @@ def prepare_dataset(mode="grpo", split=None):
         cols = ["prompt", "image", "answer"]
         return dataset.select_columns(cols)
     elif mode == "sft":
-        dataset = dataset.map(_process_sft)
-        cols = ["messages", "image", "answer"]
-        return dataset.select_columns(cols)
+        return [_process_sft(ex) for ex in tqdm(dataset, desc="Processing SFT")]
     else:  # eval
         dataset = dataset.map(_process_eval)
         cols = ["prompt", "image", "answer"]
