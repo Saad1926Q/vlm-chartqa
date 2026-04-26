@@ -11,10 +11,17 @@ from vlm_chartqa.config import (
     GRPO_GRAD_ACCUM_STEPS,
     GRPO_LEARNING_RATE,
     GRPO_NUM_GENERATIONS,
+    GRPO_MAX_PROMPT_LEN,
+    GRPO_MAX_COMPLETION_LEN,
 )
 from vlm_chartqa.dataset import prepare_dataset
 from vlm_chartqa.model import load_model
-from vlm_chartqa.train.rewards import correctness_reward_func, formatting_reward_func
+from vlm_chartqa.train.rewards import (
+    correctness_reward_func,
+    formatting_reward_func,
+    chart_type_reward_func,
+    table_reward_fn,
+)
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--output_dir", type=str, default="grpo_lora")
@@ -53,8 +60,8 @@ training_args = GRPOConfig(
     per_device_train_batch_size=args.batch_size,
     gradient_accumulation_steps=args.grad_accum_steps,
     num_generations=args.num_generations,
-    max_prompt_length=1024,
-    max_completion_length=1024,
+    max_prompt_length=GRPO_MAX_PROMPT_LEN,
+    max_completion_length=GRPO_MAX_COMPLETION_LEN,
     num_train_epochs=args.epochs,
     save_steps=60,
     max_grad_norm=0.1,
@@ -86,6 +93,8 @@ trainer = GRPOTrainer(
     reward_funcs=[
         formatting_reward_func,
         correctness_reward_func,
+        chart_type_reward_func,
+        table_reward_fn,
     ],
     train_dataset=train_dataset,
 )

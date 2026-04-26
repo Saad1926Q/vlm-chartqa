@@ -3,11 +3,16 @@ from tqdm import tqdm
 
 from vlm_chartqa.config import (
     DATASET,
+    DATASET_GRPO,
     DATASET_SIZE,
     REASONING_END,
     REASONING_START,
     SOLUTION_END,
     SOLUTION_START,
+    CHART_TYPE_START,
+    CHART_TYPE_END,
+    TABLE_START,
+    TABLE_END,
 )
 
 
@@ -87,8 +92,11 @@ def _process_grpo(example):
 
     text = (
         f"{example['query'].strip()} "
-        f"Provide reasoning between {REASONING_START} and {REASONING_END}, "
-        f"then your answer between {SOLUTION_START} and {SOLUTION_END}."
+        f"First identify the chart type between {CHART_TYPE_START} and {CHART_TYPE_END}, "
+        f"then reconstruct the chart data as a JSON table between {TABLE_START} and {TABLE_END} "
+        f"with keys 'columns' (list of column headers) and 'rows' (list of rows, each row is a list of values), "
+        f"then provide your reasoning between {REASONING_START} and {REASONING_END}, "
+        f"and finally your answer between {SOLUTION_START} and {SOLUTION_END}."
     )
 
     prompt = [
@@ -104,7 +112,6 @@ def _process_grpo(example):
     return {
         "prompt": prompt,
         "image": image,
-        "answer": example["label"][0],
     }
 
 
@@ -114,10 +121,10 @@ def prepare_dataset(mode="grpo", split=None):
             split = "train"
         else:
             split = f"train[:{DATASET_SIZE}]" if DATASET_SIZE else "train"
-    dataset = load_dataset(DATASET, split=split)
+    dataset = load_dataset(DATASET_GRPO if mode == "grpo" else DATASET, split=split)
     if mode == "grpo":
         dataset = dataset.map(_process_grpo)
-        cols = ["prompt", "image", "answer"]
+        cols = ["prompt", "image", "label", "chart_type", "table"]
         return dataset.select_columns(cols)
     elif mode == "sft":
         return [_process_sft(ex) for ex in tqdm(dataset, desc="Processing SFT")]
