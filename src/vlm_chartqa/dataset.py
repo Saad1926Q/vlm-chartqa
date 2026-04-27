@@ -58,10 +58,37 @@ def _process_sft(example):
     }
 
 
-def _process_eval(example):
+def _process_eval(example, eval_mode="sft"):
     image = _prepare_image(example)
 
-    system_prompt = """You are a Vision Language Model specialized in interpreting visual data from chart images.
+    if eval_mode == "grpo":
+        system_prompt = (
+            "You are a vision-language assistant. You are given a chart image and a query about the chart. "
+            "Think step-by-step about how to answer the query based on the chart, then provide the final answer.\n\n"
+            "Respond with exactly four blocks in this order and nothing else:\n\n"
+            f"{CHART_TYPE_START}\n"
+            "One word from: line, bar, stacked bar, pie, histogram, scatterplot, area, stacked area, bubble, treemap.\n"
+            f"{CHART_TYPE_END}\n"
+            f"{TABLE_START}\n"
+            "Only a JSON object with this exact schema and nothing else inside the tags:\n"
+            '{"columns": [...], "rows": [[...], [...], ..., [...]]}\n'
+            "\"columns\" is a list of column headers. \"rows\" is a list-of-lists, one inner list per data row. "
+            "No HTML, Markdown, or commentary inside this block.\n"
+            f"{TABLE_END}\n"
+            f"{REASONING_START}\n"
+            "Reason step-by-step:\n"
+            "<step-1>: Briefly describe what the chart shows.\n"
+            "<step-2>: Gather the values from the chart needed to answer the query.\n"
+            "<step-3>: Break the query into smaller parts and verify each against the data.\n"
+            "...\n"
+            "<step-n>: Do the final calculation or reasoning to derive the answer.\n"
+            f"{REASONING_END}\n"
+            f"{SOLUTION_START}\n"
+            "Final answer on a single line.\n"
+            f"{SOLUTION_END}"
+        )
+    else:
+        system_prompt = """You are a Vision Language Model specialized in interpreting visual data from chart images.
     Your task is to analyze the provided chart image and respond to queries with concise answers, usually a single word, number, or short phrase.
     The charts include a variety of types (e.g., line charts, bar charts) and contain colors, labels, and text.
     Focus on delivering accurate, succinct answers based on the visual information. Avoid additional explanation unless absolutely necessary."""
@@ -133,7 +160,7 @@ def _process_grpo(example):
     }
 
 
-def prepare_dataset(mode="grpo", split=None):
+def prepare_dataset(mode="grpo", split=None, eval_mode="sft"):
     if split is None:
         if mode == "sft":
             split = "train"
@@ -147,6 +174,6 @@ def prepare_dataset(mode="grpo", split=None):
     elif mode == "sft":
         return [_process_sft(ex) for ex in tqdm(dataset, desc="Processing SFT")]
     else:  # eval
-        dataset = dataset.map(_process_eval)
+        dataset = dataset.map(lambda ex: _process_eval(ex, eval_mode=eval_mode))
         cols = ["prompt", "image", "answer"]
         return dataset.select_columns(cols)
