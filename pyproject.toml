@@ -6,6 +6,7 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "unsloth>=2026.4.6",
+    "wandb>=0.26.1",
 ]
 
 [build-system]

@@ -134,6 +134,10 @@ def table_reward_fn(completions:list[Any],table:list[dict[str,Any]],**kwargs):
 
     scores = []
     for completion, gt in zip(completions, table):
+        if not isinstance(gt, dict) or not isinstance(gt.get("columns"), list) or not isinstance(gt.get("rows"), list):
+            scores.append(0.0)
+            continue
+
         matches = re.findall(table_pattern, completion, re.DOTALL)
 
         if len(matches) != 1:
