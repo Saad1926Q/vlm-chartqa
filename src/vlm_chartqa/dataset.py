@@ -91,12 +91,30 @@ def _process_grpo(example):
     image = _prepare_image(example)
 
     text = (
-        f"{example['query'].strip()} "
-        f"First identify the chart type between {CHART_TYPE_START} and {CHART_TYPE_END}, "
-        f"then reconstruct the chart data as a JSON table between {TABLE_START} and {TABLE_END} "
-        f"with keys 'columns' (list of column headers) and 'rows' (list of rows, each row is a list of values), "
-        f"then provide your reasoning between {REASONING_START} and {REASONING_END}, "
-        f"and finally your answer between {SOLUTION_START} and {SOLUTION_END}."
+        f"You are a vision-language assistant. You are given a chart image and a query about the chart. "
+        f"Think step-by-step about how to answer the query based on the chart, then provide the final answer.\n\n"
+        f"Respond with exactly four blocks in this order and nothing else:\n\n"
+        f"{CHART_TYPE_START}\n"
+        f"One word from: line, bar, stacked bar, pie, histogram, scatterplot, area, stacked area, bubble, treemap.\n"
+        f"{CHART_TYPE_END}\n"
+        f"{TABLE_START}\n"
+        f"Only a JSON object with this exact schema and nothing else inside the tags:\n"
+        f'{{"columns": [...], "rows": [[...], [...], ..., [...]]}}\n'
+        f"\"columns\" is a list of column headers. \"rows\" is a list-of-lists, one inner list per data row. "
+        f"No HTML, Markdown, or commentary inside this block.\n"
+        f"{TABLE_END}\n"
+        f"{REASONING_START}\n"
+        f"Reason step-by-step:\n"
+        f"<step-1>: Briefly describe what the chart shows.\n"
+        f"<step-2>: Gather the values from the chart needed to answer the query.\n"
+        f"<step-3>: Break the query into smaller parts and verify each against the data.\n"
+        f"...\n"
+        f"<step-n>: Do the final calculation or reasoning to derive the answer.\n"
+        f"{REASONING_END}\n"
+        f"{SOLUTION_START}\n"
+        f"Final answer on a single line.\n"
+        f"{SOLUTION_END}\n\n"
+        f"Query: {example['query'].strip()}"
     )
 
     prompt = [

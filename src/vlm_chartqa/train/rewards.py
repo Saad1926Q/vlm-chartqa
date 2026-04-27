@@ -89,31 +89,35 @@ def chart_type_reward_func(completions: list[Any], chart_type: list[str], **kwar
 def table_reward_fn(completions:list[Any],table:list[dict[str,Any]],**kwargs):
 
     def _column_header_accuracy(pred_table:dict[str,Any],gt_table:dict[str,Any]):
-        result=0
-
         n_cols=len(gt_table["columns"])
-        pred_cols=set(pred_table["columns"])
+        if n_cols==0:
+            return 0.0
 
-        for col in gt_table["columns"]:
-            if col in pred_cols:
-                result+=1
+        pred_cols_raw=pred_table.get("columns",[]) if isinstance(pred_table,dict) else []
+        if not isinstance(pred_cols_raw,list):
+            return 0.0
+        pred_cols=set(pred_cols_raw)
 
-        result/=n_cols
-
-        return result
+        result=sum(1 for col in gt_table["columns"] if col in pred_cols)
+        return result/n_cols
 
 
     def _cell_accuracy(pred_table:dict[str,Any],gt_table:dict[str,Any]):
         gt_rows=gt_table["rows"]
-        pred_rows=pred_table["rows"]
         n_rows=len(gt_rows)
 
         if n_rows==0:
             return 0.0
 
+        pred_rows=pred_table.get("rows",[]) if isinstance(pred_table,dict) else []
+        if not isinstance(pred_rows,list):
+            return 0.0
+
         total=0.0
         for gt_row,pred_row in zip(gt_rows,pred_rows):
-            if not gt_row:
+            if not isinstance(gt_row,list) or not gt_row:
+                continue
+            if not isinstance(pred_row,list):
                 continue
             matches=sum(1 for gt_cell,pred_cell in zip(gt_row,pred_row) if gt_cell==pred_cell)
             total+=matches/len(gt_row)
