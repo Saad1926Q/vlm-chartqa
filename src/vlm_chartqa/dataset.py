@@ -58,10 +58,10 @@ def _process_sft(example):
     }
 
 
-def _process_eval(example, eval_mode="sft"):
+def _process_eval(example, grpo=False):
     image = _prepare_image(example)
 
-    if eval_mode == "grpo":
+    if grpo:
         system_prompt = (
             "You are a vision-language assistant. You are given a chart image and a query about the chart. "
             "Think step-by-step about how to answer the query based on the chart, then provide the final answer.\n\n"
@@ -160,7 +160,7 @@ def _process_grpo(example):
     }
 
 
-def prepare_dataset(mode="grpo", split=None, eval_mode="sft"):
+def prepare_dataset(mode="grpo", split=None, grpo=False):
     if split is None:
         if mode == "sft":
             split = "train"
@@ -174,6 +174,6 @@ def prepare_dataset(mode="grpo", split=None, eval_mode="sft"):
     elif mode == "sft":
         return [_process_sft(ex) for ex in tqdm(dataset, desc="Processing SFT")]
     else:  # eval
-        dataset = dataset.map(lambda ex: _process_eval(ex, eval_mode=eval_mode))
+        dataset = dataset.map(lambda ex: _process_eval(ex, grpo=grpo))
         cols = ["prompt", "image", "answer"]
         return dataset.select_columns(cols)
