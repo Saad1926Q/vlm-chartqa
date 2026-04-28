@@ -39,6 +39,8 @@ So, first of all speaking of the reward functions which is like the bread and bu
 
 So the table reward maxes out at 2.5 (0.5 for valid JSON + 1 for columns + 1 for cells).
 
+For the GRPO run I used `batch_size=4`, `num_generations=4`, and `grad_accum_steps=2`.
+
 ## Evaluation
 
 The evaluation was done on the test set of the ChartQA dataset on hugging face. ChartQA is a benchmark for question answering over charts - given a chart image and a natural language question, the model has to produce the answer. Answers can be numeric (with or without units like %), yes/no, or short text spans.
