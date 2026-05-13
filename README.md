@@ -12,8 +12,8 @@ Using Qwen3-VL-8B-Instruct (via Unsloth 4-bit quant) fine-tuned with LoRA.
 
 1. Eval baseline model to get a reference score
 2. Train with SFT, eval again - see how much it improves
-3. Take the SFT checkpoint, train with GRPO, eval again 
-4. Maybe try CoT SFT + GRPO 
+3. Take the SFT checkpoint, train with GRPO, eval again
+4. Maybe try CoT SFT + GRPO
 
 ## A bit about the GRPO Training
 
@@ -47,15 +47,35 @@ The evaluation was done on the test set of the ChartQA dataset on hugging face. 
 
 Regarding the evaluation metric, I use the relaxed correctness metric which is very commonly used for evaluation in the ChartQA task. The idea is pretty simple - for numeric answers we allow up to 5% relative error (so "12.4" is considered correct if the gold is "12.5"), and for non-numeric answers we just fall back to case-insensitive exact match. This way the model isn't unfairly penalized for things like "12.5%" vs "0.125" or minor formatting differences.
 
-
 ## Results
 
-| Stage | Accuracy |
-|-------|----------|
+| Stage                                  | Accuracy          |
+| -------------------------------------- | ----------------- |
 | Baseline (Qwen3-VL-8B-Instruct, 4-bit) | 80.1% (2002/2500) |
-| Post-SFT | 82.6% (2065/2500) |
-| Post-GRPO (on top of SFT) | 82.7% (2067/2500) |
+| Post-SFT                               | 82.6% (2065/2500) |
+| Post-GRPO (on top of SFT)              | 82.7% (2067/2500) |
 
+## Why GRPO Didn't Move the Needle (and What to Try Next)
+
+The GRPO run produced essentially no gain over SFT (82.6% → 82.7%). Here are some hypotheses I collected and my own take.
+
+### Advice from others
+
+- **Just try GRPO directly on the base model.** Rather than doing SFT first and then GRPO on top, try running GRPO straight from the base model without an SFT warmup.
+
+- **Training instability from low precision.** 4-bit quantisation combined with the inherent noise of RL may make gradient updates unreliable.
+
+- **Check SFT checkpoint entropy vs. base model entropy.** If the SFT checkpoint has collapsed to very low entropy (the model is too confident), there's little room for RL to explore and improve. A quick test: average the SFT checkpoint weights against the base model weights, or scale the LoRA weights by 0.75, and see whether the RL reward signal actually improves from that softer starting point.
+
+- **Verify there's a learnable signal before committing to a full run.** Use temperature sampling on the SFT checkpoint and check whether the model produces a spread of outputs with meaningfully different rewards. If all sampled outputs score roughly the same, RL has nothing to latch on to - do more SFT first to get the format right, or revisit the reward design.
+
+- **Increase `batch_size` and `num_generations`.** Small batches produce noisy reward estimates and high-variance gradient updates. Both of these should be increased (especially `batch_size`) to stabilise the GRPO training signal.
+
+### My own take
+
+The baseline model already scores 80% out of the box - not much headroom for obvious wins. With only ~2 percentage points separating baseline from SFT, it's plausible that the reward signal was too weak and too noisy for GRPO to make further progress on top. A harder task or a weaker starting point would likely give RL more room to shine.
+
+> Next time I work on RL, I'll take these pieces of advice into account.
 
 ## Setup
 
@@ -70,6 +90,7 @@ wandb login
 ```
 
 **Run SFT training:**
+
 ```bash
 uv run python -m vlm_chartqa.train.sft --batch_size <bs> --grad_accum_steps <ga> --push_to_hub --hub_model_id your-hf-username/your-sft-model --use_wandb --wandb_project vlm-sft --wandb_run_name my-sft-run
 ```
@@ -77,6 +98,7 @@ uv run python -m vlm_chartqa.train.sft --batch_size <bs> --grad_accum_steps <ga>
 **Run GRPO training:**
 
 Pass `--lora_path` pointing to a checkpoint (local dir or HF repo) so GRPO starts from there rather than the base model.
+
 ```bash
 uv run python -m vlm_chartqa.train.grpo --lora_path your-hf-username/your-checkpoint --batch_size <bs> --grad_accum_steps <ga> --num_generations <g> --push_to_hub --hub_model_id your-hf-username/your-grpo-model --use_wandb --wandb_project vlm-grpo --wandb_run_name my-grpo-run
 ```
@@ -84,6 +106,7 @@ uv run python -m vlm_chartqa.train.grpo --lora_path your-hf-username/your-checkp
 **Run evaluation:**
 
 Pass `--grpo` only when evaluating a GRPO-trained model (it expects the structured output format). To start from a checkpoint pass `--lora_path` (local dir or HF repo); skip it to evaluate the base model.
+
 ```bash
 # Baseline (no checkpoint)
 uv run python -m vlm_chartqa.eval.eval
